@@ -40,4 +40,22 @@ public class Parameters {
     	description = "Specifies the partition key to authorize connection"
     )
     public String partitionKey;
+    
+    @Parameter(
+    	names={"--separator", "-s"}, 
+    	description = "Specifies the field separator on the flat file"
+    )
+    public String separator;
+    
+    @Parameter(
+    	names={"--linefeed", "-l"}, 
+    	description = "Specifies line feed character. Eg.: \n"
+    )
+    public String lineFeed;
+    
+    @Parameter(
+    	names={"--fields", "-f"}, 
+    	description = "Comma-separated list of the fields to be exported"
+    )
+    public String config;
 }
