@@ -7,6 +7,7 @@ import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.documentdb.DocumentCollection;
 import com.microsoft.azure.documentdb.FeedOptions;
+import com.microsoft.azure.documentdb.QueryIterable;
 import com.oncase.cosmosdb.export.executor.exception.EmptyCollectionException;
 
 public class CollectionHandler {
@@ -135,6 +136,24 @@ public class CollectionHandler {
 						query, options).getQueryIterable().toList();
 
 		return documentList;
+
+	}
+	
+	/**
+	 * Queries the collection with SELECT {fields} FROM root r WHERE {wherePart}
+	 * and retrieves a List of documents
+	 * @param String wherePart
+	 * @return List<Document> documentList
+	 */
+	public QueryIterable<Document> getIterableFieldsWhere(String fields, String wherePart) {
+
+		String query = "SELECT "+ fields +" FROM root r WHERE " +wherePart+"  ";
+		System.out.println(query);
+		QueryIterable<Document> iterable = documentClient
+				.queryDocuments(collection.getSelfLink(),
+						query, options).getQueryIterable();
+
+		return iterable;
 
 	}
 	

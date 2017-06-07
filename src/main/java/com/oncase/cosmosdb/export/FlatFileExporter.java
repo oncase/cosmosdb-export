@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.beust.jcommander.JCommander;
 import com.microsoft.azure.documentdb.Document;
+import com.microsoft.azure.documentdb.QueryIterable;
 import com.oncase.cosmosdb.export.executor.ClientContainer;
 import com.oncase.cosmosdb.export.executor.CollectionHandler;
 import com.oncase.cosmosdb.export.executor.DatabaseHandler;
@@ -45,7 +46,7 @@ public class FlatFileExporter {
 	public static void run() 
 			throws EmptyDatabaseException, EmptyCollectionException {
 
-		List<Document> docs = getDocsFieldsWhere(" r.date = '2017-03-15' ");
+		List<Document> docs = getDocsFieldsWhere(" r.date = '2017-03-15' ").toList();
 
 		Iterator<Document> docsIterator = docs.iterator();
 		int count = 0;
@@ -63,7 +64,7 @@ public class FlatFileExporter {
 
 	}
 	
-	public static List<Document> getDocsFieldsWhere(String whereClause) 
+	public static QueryIterable<Document> getDocsFieldsWhere(String whereClause) 
 			throws EmptyDatabaseException, EmptyCollectionException{
 
 		// Client
@@ -72,7 +73,6 @@ public class FlatFileExporter {
 
 		// Database
 		DatabaseHandler db = new DatabaseHandler(cli.getDocumentClient(), params.db);
-
 		// Collection
 		CollectionHandler coll;
 		if( params.enablePartitionQuery ){
@@ -89,10 +89,9 @@ public class FlatFileExporter {
 		}
 		queryFields = queryFields.substring(0, queryFields.length()-1);
 		
-		List<Document> docs = coll.getDocsFieldsWhere(queryFields, whereClause);
+		QueryIterable<Document> iterable = coll.getIterableFieldsWhere(queryFields, whereClause);
 
-		cli.getDocumentClient().close();
-		return docs;
+		return iterable;
 
 	}
 	
