@@ -8,7 +8,7 @@ mvn package -Dmaven.test.skip=true
 # Running
 
 ```
-java -jar ./target/cosmosdb-export-1.0-SNAPSHOT-jar-with-dependencies.jar --help
+./target/appassembler/bin/cosmosdb-export --help
 ```
 
 
