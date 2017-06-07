@@ -57,5 +57,5 @@ public class Parameters {
     	names={"--fields", "-f"}, 
     	description = "Comma-separated list of the fields to be exported"
     )
-    public String config;
+    public String fields;
 }

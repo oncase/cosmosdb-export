@@ -13,7 +13,7 @@ import com.oncase.cosmosdb.export.executor.exception.EmptyDatabaseException;
 
 public class FlatFileExporter {
 
-	private static Parameters params;
+	public static Parameters params;
 
 	/**
 	 * Main method receives the parameters specified in the Parameters class
@@ -42,8 +42,29 @@ public class FlatFileExporter {
 	 * @throws EmptyDatabaseException
 	 * @throws EmptyCollectionException
 	 */
-	private static void run() 
+	public static void run() 
 			throws EmptyDatabaseException, EmptyCollectionException {
+
+		List<Document> docs = getDocsFieldsWhere(" r.date = '2017-03-15' ");
+
+		Iterator<Document> docsIterator = docs.iterator();
+		int count = 0;
+		
+		while( count < 3 || docsIterator.hasNext() ){
+
+			Document doc = docsIterator.next();
+			System.out.println(doc.toString());
+
+			count++;
+		}
+		
+		System.out.println("Terminated");
+		System.exit(0);
+
+	}
+	
+	public static List<Document> getDocsFieldsWhere(String whereClause) 
+			throws EmptyDatabaseException, EmptyCollectionException{
 
 		// Client
 		ClientContainer cli = ClientContainer.getInstance();
@@ -60,23 +81,21 @@ public class FlatFileExporter {
 			coll = new CollectionHandler(db, params.collection);
 		}
 
-		List<Document> docs = coll.getAllDocs();
-
-		Iterator<Document> docsIterator = docs.iterator();
-		int count = 0;
-		
-		while( count < 3 || docsIterator.hasNext() ){
-
-			Document doc = docsIterator.next();
-			System.out.println(doc.toString());
-
-			count++;
+		// Query construction
+		String[] fields = params.fields.split(",");
+		String queryFields = "";
+		for(int x = 0 ; x < fields.length ; x++){
+			queryFields += "r." + fields[x].trim() + ",";
 		}
+		queryFields = queryFields.substring(0, queryFields.length()-1);
 		
+		List<Document> docs = coll.getDocsFieldsWhere(queryFields, whereClause);
+
 		cli.getDocumentClient().close();
-		System.out.println("Terminated");
-		System.exit(0);
+		return docs;
 
 	}
+	
+	
 
 }

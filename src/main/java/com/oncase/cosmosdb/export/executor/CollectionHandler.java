@@ -110,7 +110,7 @@ public class CollectionHandler {
 	 */
 	public List<Document> getDocsWhere(String wherePart) {
 
-		String query = "SELECT * FROM root r WHERE " +wherePart+"  ";
+		String query = "SELECT * FROM root WHERE " +wherePart+"  ";
 		
 		List<Document> documentList = documentClient
 				.queryDocuments(collection.getSelfLink(),
@@ -129,7 +129,7 @@ public class CollectionHandler {
 	public List<Document> getDocsFieldsWhere(String fields, String wherePart) {
 
 		String query = "SELECT "+ fields +" FROM root r WHERE " +wherePart+"  ";
-
+		System.out.println(query);
 		List<Document> documentList = documentClient
 				.queryDocuments(collection.getSelfLink(),
 						query, options).getQueryIterable().toList();
