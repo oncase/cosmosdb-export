@@ -1,4 +1,4 @@
-package com.oncase.cosmosdb.export.executor;
+package com.oncase.cosmosdb.export;
 
 import com.beust.jcommander.Parameter;
 
