@@ -53,24 +53,30 @@ public class FlatFileExporter {
 		DatabaseHandler db = new DatabaseHandler(cli.getDocumentClient(), params.db);
 
 		// Collection
-		CollectionHandler coll = new CollectionHandler(db, params.collection);
-		List<Document> docs = coll.getAllDocumentsByDay("2017-05-30");
+		CollectionHandler coll;
+		if( params.enablePartitionQuery ){
+			coll = new CollectionHandler(db, params.collection, params.enablePartitionQuery);
+		} else {
+			coll = new CollectionHandler(db, params.collection);
+		}
+
+		List<Document> docs = coll.getAllDocs();
 
 		Iterator<Document> docsIterator = docs.iterator();
 		int count = 0;
 		
 		while( count < 3 || docsIterator.hasNext() ){
-			
+
 			Document doc = docsIterator.next();
 			System.out.println(doc.toString());
-			
+
 			count++;
 		}
 		
 		cli.getDocumentClient().close();
 		System.out.println("Terminated");
 		System.exit(0);
-		
+
 	}
 
 }

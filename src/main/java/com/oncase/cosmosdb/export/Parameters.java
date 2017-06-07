@@ -36,10 +36,10 @@ public class Parameters {
     public String key;
     
     @Parameter(
-    	names={"--partitionkey", "-p"}, 
-    	description = "Specifies the partition key to authorize connection"
+    	names={"--enable-partition-query", "-ep"}, 
+    	description = "Whether to enable or not partitioned queries"
     )
-    public String partitionKey;
+    public boolean enablePartitionQuery = false;
     
     @Parameter(
     	names={"--separator", "-s"}, 
