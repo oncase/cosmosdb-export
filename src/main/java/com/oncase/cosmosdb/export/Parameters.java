@@ -1,4 +1,4 @@
-package com.oncase.cosmosdb.export.executor;
+package com.oncase.cosmosdb.export;
 
 import com.beust.jcommander.Parameter;
 
@@ -36,8 +36,26 @@ public class Parameters {
     public String key;
     
     @Parameter(
-    	names={"--partitionkey", "-p"}, 
-    	description = "Specifies the partition key to authorize connection"
+    	names={"--enable-partition-query", "-ep"}, 
+    	description = "Whether to enable or not partitioned queries"
     )
-    public String partitionKey;
+    public boolean enablePartitionQuery = false;
+    
+    @Parameter(
+    	names={"--separator", "-s"}, 
+    	description = "Specifies the field separator on the flat file"
+    )
+    public String separator;
+    
+    @Parameter(
+    	names={"--linefeed", "-l"}, 
+    	description = "Specifies line feed character. Eg.: \n"
+    )
+    public String lineFeed;
+    
+    @Parameter(
+    	names={"--fields", "-f"}, 
+    	description = "Comma-separated list of the fields to be exported"
+    )
+    public String fields;
 }
