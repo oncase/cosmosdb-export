@@ -3,3 +3,5 @@
 --key <ENTER_KEY> \
 --database <ENTER_DATABASE> \
 --collection <ENTER_COLLECTION>
+--enable-partition-query \
+--fields <ENTER_FIELDS_LIST>
