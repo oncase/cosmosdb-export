@@ -50,7 +50,7 @@ public class ExecutionParameters {
     public boolean enablePartitionQuery = false;
     
     @Parameter(
-    	names = {"--page-sizse", "-ps"}, 
+    	names = {"--page-size", "-ps"}, 
     	description = "Query page size"
     )
     public int pageSize = 1000;
