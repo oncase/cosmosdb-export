@@ -32,9 +32,12 @@ public class CollectionHandler {
 
 		this.documentClient = db.getDocumentClient();
 		this.db = db.getDatabase();
+
+		options = new FeedOptions();
+
+		options.setPageSize(1000);
 		
 		if( enablePartitionQuery ){
-			options = new FeedOptions();
 			options.setEnableCrossPartitionQuery(enablePartitionQuery);	
 		}
 		

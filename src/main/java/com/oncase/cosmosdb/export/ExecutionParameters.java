@@ -2,7 +2,6 @@ package com.oncase.cosmosdb.export;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.beust.jcommander.converters.FileConverter;
 
 @Parameters(separators = "=", commandDescription = "Record changes to the repository")
 
@@ -64,7 +63,7 @@ public class ExecutionParameters {
     public String where = "";
     
     @Parameter(
-    	names = {"--limit", "-w"}, 
+    	names = {"--limit", "-l"}, 
     	description = "Where clause to the query. Fields must be `r.` prefixed"
     )
     private int limit = -1;
@@ -74,19 +73,19 @@ public class ExecutionParameters {
     	names = {"--separator", "-s"}, 
     	description = "Specifies a field separator for the csv type. Default: ;"
     )
-    public String separator = ";";
+    public char separator = ';';
     
     @Parameter(
     	names = {"--enclosure", "-e"}, 
     	description = "Specifies line enclosure character. Default.: \""
     )
-    public String enclosure = "\"";
+    public char enclosure = '"';
     
     @Parameter(
     	names = {"--linefeed", "-lf"}, 
     	description = "Specifies line feed character. Eg.: \n"
     )
-    public String lineFeed;
+    public char lineFeed='\n';
     
     @Parameter(
     	names = {"--file", "-o"}, 
@@ -117,12 +116,17 @@ public class ExecutionParameters {
     public String getQueryFields(){
     	if(fields == "*") return fields;
     	
-		String[] fieldsArray = fields.split(",");
+		String[] fieldsArray = getFieldsArray();
 		String queryFields = "";
 		for(int x = 0 ; x < fieldsArray.length ; x++){
 			queryFields += "r." + fieldsArray[x].trim() + ",";
 		}
 		queryFields = queryFields.substring(0, queryFields.length()-1);
 		return queryFields;
+    }
+    
+    public String[] getFieldsArray(){
+    	if(fields == "*") return new String[] {};
+		return fields.split(",");
     }
 }
