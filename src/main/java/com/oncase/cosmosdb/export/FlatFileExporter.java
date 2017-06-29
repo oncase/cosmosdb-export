@@ -1,39 +1,45 @@
 package com.oncase.cosmosdb.export;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
 import com.beust.jcommander.JCommander;
 import com.microsoft.azure.documentdb.Document;
+import com.microsoft.azure.documentdb.DocumentClientException;
 import com.microsoft.azure.documentdb.QueryIterable;
 import com.oncase.cosmosdb.export.executor.ClientContainer;
 import com.oncase.cosmosdb.export.executor.CollectionHandler;
 import com.oncase.cosmosdb.export.executor.DatabaseHandler;
 import com.oncase.cosmosdb.export.executor.exception.EmptyCollectionException;
 import com.oncase.cosmosdb.export.executor.exception.EmptyDatabaseException;
+import com.opencsv.CSVWriter;
 
 public class FlatFileExporter {
 
-	public static Parameters params;
+	public static ExecutionParameters params;
 
 	/**
 	 * Main method receives the parameters specified in the Parameters class
 	 * 
 	 * @throws EmptyDatabaseException
 	 * @throws EmptyCollectionException
+	 * @throws DocumentClientException 
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) 
-			throws EmptyDatabaseException, EmptyCollectionException {
-		params = new Parameters();
+	public static void main(String[] args) throws EmptyDatabaseException, 
+			EmptyCollectionException, DocumentClientException, IOException {
+		params = new ExecutionParameters();
 		JCommander jc = JCommander.newBuilder().addObject(params).build();
 		jc.parse(args);
-		jc.setProgramName("exporter.sh");
+		jc.setProgramName("cosmosdb-export");
 
 		// If help command issued, only show the usage
 		if (params.help) {
 			jc.usage();
 		} else {
-			run();
+			runCommand();
 		}
 	}
 
@@ -42,29 +48,57 @@ public class FlatFileExporter {
 	 * 
 	 * @throws EmptyDatabaseException
 	 * @throws EmptyCollectionException
+	 * @throws DocumentClientException 
+	 * @throws IOException 
 	 */
-	public static void run() 
-			throws EmptyDatabaseException, EmptyCollectionException {
+	private static void runCommand() throws EmptyDatabaseException, 
+			EmptyCollectionException, DocumentClientException, IOException {
 
-		List<Document> docs = getDocsFieldsWhere(" r.date = '2017-03-15' ").toList();
+		CollectionHandler coll = getCollectionHandler();
 
-		Iterator<Document> docsIterator = docs.iterator();
-		int count = 0;
+		QueryIterable<Document> iterable = coll.getIterableFieldsWhere(
+				params.getLimit(), params.getQueryFields(), params.where);
+
+
+		List<Document> next = iterable.fetchNextBlock();
+		String[] fields = params.getFieldsArray();
 		
-		while( count < 3 || docsIterator.hasNext() ){
+		System.out.println("Output file: ");
+		System.out.println(params.file);
+		CSVWriter writer = new CSVWriter(
+				new FileWriter(params.file), params.separator, params.enclosure);
 
-			Document doc = docsIterator.next();
-			System.out.println(doc.toString());
+		while( next != null && next.size() > 0 ){
+			Iterator<Document> docs = next.iterator();
 
-			count++;
+			while(docs.hasNext()){
+				Document doc = docs.next();
+				String[] cols = new String[fields.length];
+
+				for(int i = 0 ; i < cols.length ; i++) {
+					try {
+						cols[i] = getOutputVal( doc.get( fields[i] ) );
+						
+					} catch(Exception e) {
+						cols[i] ="";
+						System.out.println("Error");
+						System.out.println(doc.get( fields[i] ));
+					}
+				}
+				writer.writeNext(cols);
+			}
+
+			next = iterable.fetchNextBlock();
 		}
 		
+		writer.close();
+		coll.getDocumentClient().close();
 		System.out.println("Terminated");
 		System.exit(0);
 
 	}
-	
-	public static QueryIterable<Document> getDocsFieldsWhere(String whereClause) 
+
+	public static CollectionHandler getCollectionHandler() 
 			throws EmptyDatabaseException, EmptyCollectionException{
 
 		// Client
@@ -72,29 +106,25 @@ public class FlatFileExporter {
 		cli.init(params.host, params.key);
 
 		// Database
-		DatabaseHandler db = new DatabaseHandler(cli.getDocumentClient(), params.db);
-		// Collection
-		CollectionHandler coll;
-		if( params.enablePartitionQuery ){
-			coll = new CollectionHandler(db, params.collection, params.enablePartitionQuery);
-		} else {
-			coll = new CollectionHandler(db, params.collection);
-		}
+		DatabaseHandler db = new DatabaseHandler(
+				cli.getDocumentClient(), params.db);
 
-		// Query construction
-		String[] fields = params.fields.split(",");
-		String queryFields = "";
-		for(int x = 0 ; x < fields.length ; x++){
-			queryFields += "r." + fields[x].trim() + ",";
-		}
-		queryFields = queryFields.substring(0, queryFields.length()-1);
+		System.out.println("Partition Query");
+		System.out.println(params.enablePartitionQuery);
 		
-		QueryIterable<Document> iterable = coll.getIterableFieldsWhere(queryFields, whereClause);
-
-		return iterable;
-
+		// Collection
+		return new CollectionHandler(db, params.collection, 
+				params.enablePartitionQuery, params.pageSize);
+		
 	}
-	
-	
+
+	static String getOutputVal( Object value ){
+		if( value == null || value == ""){
+			return "";
+		} else {
+			return String.valueOf(value);
+		}
+	}
+
 
 }

@@ -24,50 +24,27 @@ public class CollectionHandler {
 	 * @param DocumentClient documentClient
 	 * @param Database db
 	 * @param String coll
-	 * @throws EmptyCollectionException
-	 */
-	public CollectionHandler(DatabaseHandler db, String coll) 
-			throws EmptyCollectionException {
-
-		this.documentClient = db.getDocumentClient();
-		this.db = db.getDatabase();
-		
-		List<DocumentCollection> collectionList = this.documentClient
-				.queryCollections( this.db.getSelfLink(),
-						"SELECT * FROM root r WHERE r.id='" + coll + "'", 
-						null).getQueryIterable().toList();
-
-		if (collectionList.size() > 0) {
-			collection = collectionList.get(0);
-		}else{
-			throw new EmptyCollectionException(this.documentClient, 
-					this.db, coll);
-		}
-	}
-	
-	/**
-	 * Creates a Collection Handler that can query and operate on the 
-	 * collection level 
-	 * 
-	 * @param DocumentClient documentClient
-	 * @param Database db
-	 * @param String coll
 	 * @param String partKey
 	 * @throws EmptyCollectionException
 	 */
-	public CollectionHandler(DatabaseHandler db, String coll, boolean enablePartitionQuery) 
-			throws EmptyCollectionException {
+	public CollectionHandler(DatabaseHandler db, String coll, 
+			boolean enablePartitionQuery, int pageSize) throws EmptyCollectionException {
 
 		this.documentClient = db.getDocumentClient();
 		this.db = db.getDatabase();
+
+		options = new FeedOptions();
+
+		options.setPageSize(pageSize);
 		
-		this.options = new FeedOptions();
-		this.options.setEnableCrossPartitionQuery(enablePartitionQuery);
+		if( enablePartitionQuery ){
+			options.setEnableCrossPartitionQuery(enablePartitionQuery);	
+		}
 		
 		List<DocumentCollection> collectionList = this.documentClient
 				.queryCollections( this.db.getSelfLink(),
 						"SELECT * FROM root r WHERE r.id='" + coll + "'", 
-						this.options).getQueryIterable().toList();
+						options).getQueryIterable().toList();
 
 		if (collectionList.size() > 0) {
 			collection = collectionList.get(0);
@@ -78,95 +55,63 @@ public class CollectionHandler {
 	}
 	
 	/**
-	 * 
+	 * Gets the instance collection
 	 * @return DocumentCollection collection
 	 */
 	public DocumentCollection getCollection(){
 		return collection;
 	}
-	
+
 	/**
-	 * Specialist implementation to retrieve documents from the collection
-	 * by the field named `date` WHERE date = 'date'
-	 * @param String date
-	 * @return List<Document> documentList
+	 * Gets the instance documentClient. Useful to closing connection after done
+	 * @return DocumentClient documentClient
 	 */
-	public List<Document> getAllDocumentsByDay(String date) {
-
-		String query = "SELECT * FROM root r WHERE r.date = '" +date+"'";
-
-		List<Document> documentList = documentClient
-				.queryDocuments(collection.getSelfLink(),
-						query, options).getQueryIterable().toList();
-
-		return documentList;
-
+	public DocumentClient getDocumentClient() {
+		return documentClient;
 	}
 
 	/**
-	 * Queries the collection with SELECT * FROM root r WHERE {wherePart}
-	 * and retrieves a List of documents
-	 * @param String wherePart
-	 * @return List<Document> documentList
+	 * Gets the instance DB
+	 * @return Database db
 	 */
-	public List<Document> getDocsWhere(String wherePart) {
+	public Database getDb() {
+		return db;
+	}
 
-		String query = "SELECT * FROM root WHERE " +wherePart+"  ";
-		
-		List<Document> documentList = documentClient
-				.queryDocuments(collection.getSelfLink(),
-						query, options).getQueryIterable().toList();
-
-		return documentList;
-
+	/**
+	 * Gets the current feed options used to perform the query
+	 * @return FeedOptions options
+	 */
+	public FeedOptions getOptions() {
+		return options;
 	}
 	
 	/**
 	 * Queries the collection with SELECT {fields} FROM root r WHERE {wherePart}
-	 * and retrieves a List of documents
+	 * and returns an Iterable to read from the query - good for big collections
+	 * @param String fields - r. prefixed and comma separated
 	 * @param String wherePart
-	 * @return List<Document> documentList
+	 * @return QueryIterable<Document> iterable
 	 */
-	public List<Document> getDocsFieldsWhere(String fields, String wherePart) {
-
-		String query = "SELECT "+ fields +" FROM root r WHERE " +wherePart+"  ";
+	public QueryIterable<Document> getIterableFieldsWhere(String limit, 
+			String fields, String wherePart) {
+		String query = "SELECT " + limit + fields +" FROM root r " +wherePart+"  ";
 		System.out.println(query);
-		List<Document> documentList = documentClient
-				.queryDocuments(collection.getSelfLink(),
-						query, options).getQueryIterable().toList();
-
-		return documentList;
-
-	}
-	
-	/**
-	 * Queries the collection with SELECT {fields} FROM root r WHERE {wherePart}
-	 * and retrieves a List of documents
-	 * @param String wherePart
-	 * @return List<Document> documentList
-	 */
-	public QueryIterable<Document> getIterableFieldsWhere(String fields, String wherePart) {
-
-		String query = "SELECT "+ fields +" FROM root r WHERE " +wherePart+"  ";
-		System.out.println(query);
-		QueryIterable<Document> iterable = documentClient
-				.queryDocuments(collection.getSelfLink(),
-						query, options).getQueryIterable();
-
+		QueryIterable<Document> iterable = documentClient.queryDocuments(
+				collection.getSelfLink(), query, options).getQueryIterable();
 		return iterable;
-
-	}
-	
-	
-	public List<Document> getAllDocs(){
-		String query = "SELECT top 10 * FROM root";
-
-		List<Document> documentList = documentClient
-				.queryDocuments(collection.getSelfLink(),
-						query, options).getQueryIterable().toList();
-
-		return documentList;
 	}
 
+	/**
+	 * Queries the collection with SELECT {fields} FROM root r WHERE {wherePart}
+	 * and returns a List with all Documents matched
+	 * @param String fields - r. prefixed and comma separated
+	 * @param String wherePart
+	 * @return List<Document> documentList
+	 */
+	public List<Document> getDocsFieldsWhere(String limit, 
+			String fields, String wherePart) {
+		return getIterableFieldsWhere(limit, fields, wherePart).toList();
+	}
 
 }
