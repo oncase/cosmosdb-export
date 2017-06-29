@@ -113,8 +113,8 @@ public class FlatFileExporter {
 		System.out.println(params.enablePartitionQuery);
 		
 		// Collection
-		return new CollectionHandler(
-				db, params.collection, params.enablePartitionQuery);
+		return new CollectionHandler(db, params.collection, 
+				params.enablePartitionQuery, params.pageSize);
 		
 	}
 

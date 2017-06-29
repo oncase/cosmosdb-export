@@ -48,6 +48,12 @@ public class ExecutionParameters {
     	description = "Whether to enable or not partitioned queries"
     )
     public boolean enablePartitionQuery = false;
+    
+    @Parameter(
+    	names = {"--page-sizse", "-ps"}, 
+    	description = "Query page size"
+    )
+    public int pageSize = 1000;
 
 	/* Querying ------------------------------------------------------------- */
     @Parameter(

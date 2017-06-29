@@ -28,14 +28,14 @@ public class CollectionHandler {
 	 * @throws EmptyCollectionException
 	 */
 	public CollectionHandler(DatabaseHandler db, String coll, 
-			boolean enablePartitionQuery) throws EmptyCollectionException {
+			boolean enablePartitionQuery, int pageSize) throws EmptyCollectionException {
 
 		this.documentClient = db.getDocumentClient();
 		this.db = db.getDatabase();
 
 		options = new FeedOptions();
 
-		options.setPageSize(100000);
+		options.setPageSize(pageSize);
 		
 		if( enablePartitionQuery ){
 			options.setEnableCrossPartitionQuery(enablePartitionQuery);	
