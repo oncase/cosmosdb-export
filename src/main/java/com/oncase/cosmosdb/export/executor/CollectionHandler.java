@@ -35,7 +35,7 @@ public class CollectionHandler {
 
 		options = new FeedOptions();
 
-		options.setPageSize(1000);
+		options.setPageSize(100000);
 		
 		if( enablePartitionQuery ){
 			options.setEnableCrossPartitionQuery(enablePartitionQuery);	
