@@ -54,7 +54,7 @@ public class FlatFileExporter {
 	private static void runCommand() throws EmptyDatabaseException, 
 			EmptyCollectionException, DocumentClientException, IOException {
 
-		CollectionHandler coll = getCollectionHandler();
+		CollectionHandler coll = getCollectionHandler(params);
 
 		QueryIterable<Document> iterable = coll.getIterableFieldsWhere(
 				params.getLimit(), params.getQueryFields(), params.where);
@@ -98,23 +98,20 @@ public class FlatFileExporter {
 
 	}
 
-	public static CollectionHandler getCollectionHandler() 
+	public static CollectionHandler getCollectionHandler(ExecutionParameters p) 
 			throws EmptyDatabaseException, EmptyCollectionException{
 
 		// Client
 		ClientContainer cli = ClientContainer.getInstance();
-		cli.init(params.host, params.key);
+		cli.init(p.host, p.key);
 
 		// Database
 		DatabaseHandler db = new DatabaseHandler(
-				cli.getDocumentClient(), params.db);
-
-		System.out.println("Partition Query");
-		System.out.println(params.enablePartitionQuery);
+				cli.getDocumentClient(), p.db);
 		
 		// Collection
-		return new CollectionHandler(db, params.collection, 
-				params.enablePartitionQuery, params.pageSize);
+		return new CollectionHandler(db, p.collection, 
+				p.enablePartitionQuery, p.pageSize);
 		
 	}
 
